@@ -33,12 +33,12 @@ namespace UZipDotNet
     {
         public string[] ExceptionStack;
 
-        private string _readFileName;
+        //private string _readFileName;
         private FileStream _readStream;
         private BinaryReader _readFile;
         private UInt32 _readRemain;
 
-        private string _writeFileName;
+        //private string _writeFileName;
         private FileStream _writeStream;
         private BinaryWriter _writeFile;
 
@@ -65,7 +65,7 @@ namespace UZipDotNet
             try
             {
                 // save name
-                _readFileName = readFileName;
+                //_readFileName = readFileName;
 
                 // open source file for reading
                 _readStream = new FileStream(readFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -80,7 +80,7 @@ namespace UZipDotNet
                 _readRemain = (UInt32)_readStream.Length;
 
                 // save name
-                _writeFileName = writeFileName;
+                //_writeFileName = writeFileName;
 
                 // create destination file
                 _writeStream = new FileStream(writeFileName, FileMode.Create, FileAccess.Write, FileShare.None);

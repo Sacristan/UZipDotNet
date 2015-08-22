@@ -401,7 +401,7 @@ namespace UZipDotNet
                 if (FileDirSig != 0x02014b50) throw new Exception("File directory signature error");
 
                 // ReSharper disable once UnusedVariable : Version made by (ignored)
-                int versionMadeBy = _readFile.ReadInt16();
+                //int versionMadeBy = _readFile.ReadInt16();
 
                 // Low byte is version needed to extract (the low byte should be 20 for version 2.0).
                 // High byte is a computer system code that define the extrenal file attribute.
@@ -443,7 +443,7 @@ namespace UZipDotNet
                 if (fileDiskNo != 0) throw new Exception("No support for multi-disk ZIP file");
 
                 // ReSharper disable once UnusedVariable : internal file attributes (ignored)
-                int fileIntAttr = _readFile.ReadInt16();
+                //int fileIntAttr = _readFile.ReadInt16();
 
                 // external file attributes
                 fh.FileAttr = (FileAttributes)_readFile.ReadUInt32();
@@ -525,23 +525,23 @@ namespace UZipDotNet
 
             // version needed to extract and file system for external file attributes
             // ReSharper disable once UnusedVariable
-            ushort version = _readFile.ReadUInt16();
+            //ushort version = _readFile.ReadUInt16();
 
             // general purpose bit flag
             // ReSharper disable once UnusedVariable
-            ushort bitFlags = _readFile.ReadUInt16();
+            //ushort bitFlags = _readFile.ReadUInt16();
 
             // compression method
             // ReSharper disable once UnusedVariable
-            ushort compMethod = _readFile.ReadUInt16();
+            //ushort compMethod = _readFile.ReadUInt16();
 
             // last mod file time
             // ReSharper disable once UnusedVariable
-            ushort fileTime = _readFile.ReadUInt16();
+            //ushort fileTime = _readFile.ReadUInt16();
 
             // last mod file date
             // ReSharper disable once UnusedVariable
-            ushort fileDate = _readFile.ReadUInt16();
+            //ushort fileDate = _readFile.ReadUInt16();
 
             // crc-32
             // ReSharper disable once InconsistentNaming
@@ -553,14 +553,14 @@ namespace UZipDotNet
 
             // compressed size
             // ReSharper disable once UnusedVariable
-            uint compSize = _readFile.ReadUInt32();
+            //uint compSize = _readFile.ReadUInt32();
 
             // uncompressed size
             // ReSharper disable once UnusedVariable
-            uint fileSize = _readFile.ReadUInt32();
+            //uint fileSize = _readFile.ReadUInt32();
 
             // file name length
-            int fileNameLen = _readFile.ReadInt16();
+            //int fileNameLen = _readFile.ReadInt16();
 
             // extra field length
             int extraFieldLen = _readFile.ReadInt16();
@@ -569,7 +569,7 @@ namespace UZipDotNet
             // read all the bytes of the file name into a byte array
             // extract a string from the byte array using DOS (IBM OEM code page 437)
             // replace the unix forward slash with microsoft back slash
-            string fileName = Utils.DecodeFilename(_readFile.ReadBytes(fileNameLen));
+            //string fileName = Utils.DecodeFilename(_readFile.ReadBytes(fileNameLen));
 
             // if extra field length is 36 get file times
             if (extraFieldLen == 36)

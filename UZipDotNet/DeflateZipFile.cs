@@ -808,7 +808,7 @@ namespace UZipDotNet
                 if (fileDirSig != 0x02014b50) throw new Exception("File directory signature error");
 
                 // ReSharper disable once UnusedVariable : Version made by (ignored)
-                int versionMadeBy = _writeFileReader.ReadInt16();
+                //int versionMadeBy = _writeFileReader.ReadInt16();
 
                 // Low byte is version needed to extract (the low byte should be 20 for version 2.0).
                 // High byte is a computer system code that define the extrenal file attribute.
@@ -850,7 +850,7 @@ namespace UZipDotNet
                 if (fileDiskNo != 0) throw new Exception("No support for multi-disk ZIP file");
 
                 // ReSharper disable once UnusedVariable : internal file attributes (ignored)
-                int fileIntAttr = _writeFileReader.ReadInt16();
+                //int fileIntAttr = _writeFileReader.ReadInt16();
 
                 // external file attributes
                 fh.FileAttr = (FileAttributes)_writeFileReader.ReadUInt32();

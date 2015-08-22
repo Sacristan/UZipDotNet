@@ -34,13 +34,13 @@ namespace UZipDotNet
 {
     public class DeflateZLib : DeflateMethod, IDeflateFile
     {
-        private String _readFileName;
+        //private String _readFileName;
         private FileStream _readStream;
         private BinaryReader _readFile;
         private UInt32 _readRemain;
         private UInt32 _readAdler32;
 
-        private String _writeFileName;
+        //private String _writeFileName;
         private FileStream _writeStream;
         private BinaryWriter _writeFile;
 
@@ -69,7 +69,7 @@ namespace UZipDotNet
             try
             {
                 // save read file name
-                _readFileName = readFileName;
+                //_readFileName = readFileName;
 
                 // open source file for reading
                 _readStream = new FileStream(readFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -87,7 +87,7 @@ namespace UZipDotNet
                 _readAdler32 = 1;
 
                 // save name
-                _writeFileName = writeFileName;
+                //_writeFileName = writeFileName;
 
                 // create destination file
                 _writeStream = new FileStream(writeFileName, FileMode.Create, FileAccess.Write, FileShare.None);
