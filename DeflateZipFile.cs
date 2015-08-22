@@ -181,7 +181,7 @@ namespace UZipDotNet
                 Compress();
 
                 // close read file
-                _readFile.Dispose();
+                _readFile.Close();
                 _readFile = null;
 
                 // update zip file header with input file crc and compressed file length
@@ -192,7 +192,7 @@ namespace UZipDotNet
                 // close the read file if it is open
                 if (_readFile != null)
                 {
-                    _readFile.Dispose();
+                    _readFile.Close();
                     _readFile = null;
                 }
 
@@ -251,7 +251,7 @@ namespace UZipDotNet
                 if (ZipDir.Count == 0)
                 {
                     // close and delete the file
-                    _writeFile.Dispose();
+                    _writeFile.Close();
                     _writeFile = null;
                     File.Delete(_writeFileName);
                 }
@@ -264,7 +264,7 @@ namespace UZipDotNet
                     ZipFileDirectory();
 
                     // close file
-                    _writeFile.Dispose();
+                    _writeFile.Close();
                     _writeFile = null;
 
                     // clear directory
@@ -947,7 +947,7 @@ namespace UZipDotNet
             // close the write file if it is open
             if (_writeFile != null)
             {
-                _writeFile.Dispose();
+                _writeFile.Close();
                 _writeFile = null;
             }
         }

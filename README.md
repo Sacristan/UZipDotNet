@@ -5,6 +5,4 @@ The original source is  copied from http://www.codeproject.com/Articles/359758/P
 The original license is CPOL.
 The original author is Uzi Granot.
 
-I've updated the code with:
-* Compile it in VS2014 and VS2015 (.NET 4, .NET 4.5, ASPNET50 and ASPNETCORE5)
-* TODO ...
+This fork Unity Engine version of package

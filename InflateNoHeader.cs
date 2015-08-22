@@ -3,10 +3,10 @@
 //	UZipDotNet
 //	ZIP File processing
 //
-//	DeflateNoHeader.cs
-//	Class designed to compress a file to another file without
-//	adding any header or trailer information. This class is
-//	derived from DeflateMethod class. Not used in this project.
+//	InflateNoHeader.cs
+//	Class designed to decompress a file to another file. The input
+//	file has no header or trailer information. This class is derived
+//	from InflateMethod class. Not used in this project.
 //
 //	Granotech Limited
 //	Author: Uzi Granot
@@ -29,38 +29,28 @@ using System.Text;
 
 namespace UZipDotNet
 {
-    public class DeflateNoHeader : DeflateMethod
+    public class InflateNoHeader : InflateMethod
     {
-        public string[] ExceptionStack;
+        public uint ReadTotal;
+        public uint WriteTotal;
 
-        private string _readFileName;
+        private String _readFileName;
         private FileStream _readStream;
         private BinaryReader _readFile;
-        private UInt32 _readRemain;
+        private uint _readRemain;
 
-        private string _writeFileName;
+        private String _writeFileName;
         private FileStream _writeStream;
         private BinaryWriter _writeFile;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeflateNoHeader"/> class.
-        /// </summary>
-        public DeflateNoHeader() : base(DefaultCompression) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DeflateNoHeader"/> class.
-        /// </summary>
-        /// <param name="compLevel">The comp level.</param>
-        public DeflateNoHeader(int compLevel) : base(compLevel) { }
-
-        /// <summary>
-        /// Compress one file
+        ///  Decompress one file
         /// </summary>
         /// <param name="readFileName">Name of the read file.</param>
         /// <param name="writeFileName">Name of the write file.</param>
         /// <returns></returns>
-        /// <exception cref="System.Exception">No support for files over 4GB</exception>
-        public void Compress(string readFileName, string writeFileName)
+        /// <exception cref="UZipDotNet.Exception">No support for files over 4GB</exception>
+        public bool Decompress(string readFileName, string writeFileName)
         {
             try
             {
@@ -74,10 +64,11 @@ namespace UZipDotNet
                 _readFile = new BinaryReader(_readStream, Encoding.UTF8);
 
                 // file is too long
-                if (_readStream.Length > 0xffffffff) throw new Exception("No support for files over 4GB"); // TODO throw IOException ?
+                if (_readStream.Length > 0xffffffff) throw new Exception("No support for files over 4GB");
 
-                // uncompressed file length
-                _readRemain = (UInt32)_readStream.Length;
+                // save file length
+                _readRemain = (uint)_readStream.Length;
+                ReadTotal = _readRemain;
 
                 // save name
                 _writeFileName = writeFileName;
@@ -88,39 +79,49 @@ namespace UZipDotNet
                 // convert stream to binary writer
                 _writeFile = new BinaryWriter(_writeStream, Encoding.UTF8);
 
-                // compress the file (function defind in DeflateMethod the base class)
-                Compress();
+                // decompress the file
+                Decompress();
 
                 // close read file
-                _readFile.Dispose();
+                _readFile.Close();
                 _readFile = null;
 
+                // save file length
+                WriteTotal = (uint)_writeStream.Length;
+
                 // close write file
-                _writeFile.Dispose();
+                _writeFile.Close();
                 _writeFile = null;
+
+                // successful exit
+                return (false);
             }
+
+            // make sure read and write files are closed
             catch (Exception)
             {
                 // close the read file if it is open
                 if (_readFile != null)
                 {
-                    _readFile.Dispose();
+                    _readFile.Close();
                     _readFile = null;
                 }
 
                 // close the write file if it is open
                 if (_writeFile != null)
                 {
-                    _writeFile.Dispose();
+                    _writeFile.Close();
                     _writeFile = null;
                 }
 
-                throw;
+                // error exit
+                //ExceptionStack = ExceptionReport.GetMessageAndStack(this, Ex);
+                return (true);
             }
         }
 
         /// <summary>
-        /// Read Bytes Routine
+        ///  Read Bytes Routine
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="pos">The position.</param>
@@ -131,12 +132,14 @@ namespace UZipDotNet
         {
             len = len > _readRemain ? (int)_readRemain : len;
             _readRemain -= (uint)len;
+            ReadTotal += (uint)len;
             endOfFile = _readRemain == 0;
+
             return (_readFile.Read(buffer, pos, len));
         }
 
         /// <summary>
-        /// Write Bytes Routine
+        /// Writes the bytes.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <param name="pos">The position.</param>
@@ -144,28 +147,12 @@ namespace UZipDotNet
         protected override void WriteBytes(byte[] buffer, int pos, int len)
         {
             _writeFile.Write(buffer, pos, len);
-        }
-
-        /// <summary>
-        /// Rewind input and output stream
-        /// </summary>
-        protected override void RewindStreams()
-        {
-            // reposition stream file pointer to start of file
-            _readStream.Position = 0;
-
-            // uncompressed file length
-            _readRemain = (uint)_readStream.Length;
-
-            // truncate file
-            _writeStream.SetLength(0);
-
-            // reposition write stream to the new end of file
-            _writeStream.Position = 0;
+            WriteTotal += (uint)len;
         }
 
         public override void Dispose()
         {
+            //
         }
     }
 }

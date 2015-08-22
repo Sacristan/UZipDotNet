@@ -198,14 +198,14 @@ namespace UZipDotNet
             // close the read file if it is open
             if (_readFile != null)
             {
-                _readFile.Dispose();
+                _readFile.Close();
                 _readFile = null;
             }
 
             // close the write file if it is open
             if (_writeFile != null)
             {
-                _writeFile.Dispose();
+                _writeFile.Close();
                 _writeFile = null;
             }
         }

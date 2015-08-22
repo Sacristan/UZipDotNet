@@ -229,7 +229,7 @@ namespace UZipDotNet
                 WriteTotal = (uint)_writeStream.Length;
 
                 // close write file
-                _writeFile.Dispose();
+                _writeFile.Close();
                 _writeFile = null;
 
                 // if file times are available set the file time
@@ -258,7 +258,7 @@ namespace UZipDotNet
                 // close the write file if it is open
                 if (_writeFile != null)
                 {
-                    _writeFile.Dispose();
+                    _writeFile.Close();
                     _writeFile = null;
                 }
 
@@ -630,7 +630,7 @@ namespace UZipDotNet
             // close the read file if it is open
             if (_readFile != null)
             {
-                _readFile.Dispose();
+                _readFile.Close();
                 _readFile = null;
             }
 

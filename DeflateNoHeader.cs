@@ -3,12 +3,10 @@
 //	UZipDotNet
 //	ZIP File processing
 //
-//	InflateZLib.cs
-//	Class designed to decompress a file to another file. The
-//	decompressed file will have ZLIB header and Adler32 checksum
-//	at the end of the file. This class is derived from InflateMethod
-//	class. This class is used by the application to test the
-//	decompression software.
+//	DeflateNoHeader.cs
+//	Class designed to compress a file to another file without
+//	adding any header or trailer information. This class is
+//	derived from DeflateMethod class. Not used in this project.
 //
 //	Granotech Limited
 //	Author: Uzi Granot
@@ -28,40 +26,41 @@
 using System;
 using System.IO;
 using System.Text;
-using UZipDotNet.Support;
 
 namespace UZipDotNet
 {
-    public class InflateZLib : InflateMethod
+    public class DeflateNoHeader : DeflateMethod
     {
-        public String[] ExceptionStack;
-        public uint ReadTotal;
-        public uint WriteTotal;
+        public string[] ExceptionStack;
 
-        private String _readFileName;
+        private string _readFileName;
         private FileStream _readStream;
         private BinaryReader _readFile;
-        private uint _readRemain;
+        private UInt32 _readRemain;
 
-        private String _writeFileName;
+        private string _writeFileName;
         private FileStream _writeStream;
         private BinaryWriter _writeFile;
-        private uint _writeAdler32;
 
         /// <summary>
-        /// Decompress one file
+        /// Initializes a new instance of the <see cref="DeflateNoHeader"/> class.
+        /// </summary>
+        public DeflateNoHeader() : base(DefaultCompression) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeflateNoHeader"/> class.
+        /// </summary>
+        /// <param name="compLevel">The comp level.</param>
+        public DeflateNoHeader(int compLevel) : base(compLevel) { }
+
+        /// <summary>
+        /// Compress one file
         /// </summary>
         /// <param name="readFileName">Name of the read file.</param>
         /// <param name="writeFileName">Name of the write file.</param>
         /// <returns></returns>
-        /// <exception cref="UZipDotNet.Exception">
-        /// No support for files over 4GB
-        /// or
-        /// ZLIB file header is in error
-        /// or
-        /// ZLIB file Adler32 test failed
-        /// </exception>
-        public void DecompressFile(string readFileName, string writeFileName)
+        /// <exception cref="System.Exception">No support for files over 4GB</exception>
+        public void Compress(string readFileName, string writeFileName)
         {
             try
             {
@@ -75,19 +74,10 @@ namespace UZipDotNet
                 _readFile = new BinaryReader(_readStream, Encoding.UTF8);
 
                 // file is too long
-                if (_readStream.Length > 0xffffffff) throw new Exception("No support for files over 4GB");
+                if (_readStream.Length > 0xffffffff) throw new Exception("No support for files over 4GB"); // TODO throw IOException ?
 
-                // compressed part of the file
-                // we subtract 2 bytes for header and 4 bytes for adler32 checksum
-                _readRemain = (uint)_readStream.Length - 6;
-                ReadTotal = _readRemain;
-
-                // get ZLib header
-                int header = (_readFile.ReadByte() << 8) | _readFile.ReadByte();
-
-                // test header: chksum, compression method must be deflated, no support for external dictionary
-                if (header % 31 != 0 || (header & 0xf00) != 0x800 && (header & 0xf00) != 0 || (header & 0x20) != 0)
-                    throw new Exception("ZLIB file header is in error");
+                // uncompressed file length
+                _readRemain = (UInt32)_readStream.Length;
 
                 // save name
                 _writeFileName = writeFileName;
@@ -98,38 +88,32 @@ namespace UZipDotNet
                 // convert stream to binary writer
                 _writeFile = new BinaryWriter(_writeStream, Encoding.UTF8);
 
-                // reset adler32 checksum
-                _writeAdler32 = 1;
-
-                // decompress the file
-                if ((header & 0xf00) == 0x800)
-                {
-                    Decompress();
-                }
-                else
-                {
-                    NoCompression();
-                }
-
-                // ZLib checksum is Adler32
-                if ((((uint)_readFile.ReadByte() << 24) | ((uint)_readFile.ReadByte() << 16) |
-                    ((uint)_readFile.ReadByte() << 8) | (_readFile.ReadByte())) != _writeAdler32)
-                    throw new Exception("ZLIB file Adler32 test failed");
+                // compress the file (function defind in DeflateMethod the base class)
+                Compress();
 
                 // close read file
-                _readFile.Dispose();
+                _readFile.Close();
                 _readFile = null;
 
-                // save file length
-                WriteTotal = (uint)_writeStream.Length;
-
                 // close write file
-                _writeFile.Dispose();
+                _writeFile.Close();
                 _writeFile = null;
             }
             catch (Exception)
             {
-                Dispose();
+                // close the read file if it is open
+                if (_readFile != null)
+                {
+                    _readFile.Close();
+                    _readFile = null;
+                }
+
+                // close the write file if it is open
+                if (_writeFile != null)
+                {
+                    _writeFile.Close();
+                    _writeFile = null;
+                }
 
                 throw;
             }
@@ -148,7 +132,6 @@ namespace UZipDotNet
             len = len > _readRemain ? (int)_readRemain : len;
             _readRemain -= (uint)len;
             endOfFile = _readRemain == 0;
-
             return (_readFile.Read(buffer, pos, len));
         }
 
@@ -160,25 +143,29 @@ namespace UZipDotNet
         /// <param name="len">The length.</param>
         protected override void WriteBytes(byte[] buffer, int pos, int len)
         {
-            _writeAdler32 = Adler32.Checksum(_writeAdler32, buffer, pos, len);
             _writeFile.Write(buffer, pos, len);
+        }
+
+        /// <summary>
+        /// Rewind input and output stream
+        /// </summary>
+        protected override void RewindStreams()
+        {
+            // reposition stream file pointer to start of file
+            _readStream.Position = 0;
+
+            // uncompressed file length
+            _readRemain = (uint)_readStream.Length;
+
+            // truncate file
+            _writeStream.SetLength(0);
+
+            // reposition write stream to the new end of file
+            _writeStream.Position = 0;
         }
 
         public override void Dispose()
         {
-            // close the read file if it is open
-            if (_readFile != null)
-            {
-                _readFile.Dispose();
-                _readFile = null;
-            }
-
-            // close the write file if it is open
-            if (_writeFile != null)
-            {
-                _writeFile.Dispose();
-                _writeFile = null;
-            }
         }
     }
 }
